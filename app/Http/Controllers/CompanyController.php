@@ -8,10 +8,17 @@ use Inertia\Inertia;
 
 class CompanyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Inertia::render('Companies/Index', [
-            'companies' => Company::withCount('projects')->latest()->get()
+            'companies' => Company::withCount('projects')
+                ->when($request->search, function ($query, $search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                ->latest()
+                ->paginate(10)
+                ->withQueryString(),
+            'filters' => $request->only(['search'])
         ]);
     }
 
@@ -29,13 +36,6 @@ class CompanyController extends Controller
         Company::create($validated);
 
         return redirect()->route('companies.index');
-    }
-
-    public function show(Company $company)
-    {
-        return Inertia::render('Companies/Show', [
-            'company' => $company->load('projects')
-        ]);
     }
 
     public function edit(Company $company)
