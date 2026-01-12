@@ -4,65 +4,64 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\Project;
-use App\Jobs\ProcessTicketAttachment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
     public function index()
     {
         return Inertia::render('Tickets/Index', [
-            'tickets' => Ticket::with(['project.company', 'detail', 'user'])->latest()->get()
+            'tickets' => Ticket::with(['project.company', 'user'])->latest()->get()
         ]);
     }
 
     public function create()
     {
         return Inertia::render('Tickets/Create', [
-            'projects' => Project::with('company')->get()
+            'projects' => Project::all(['id', 'name'])
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'project_id' => 'required|exists:projects,id',
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'attachment' => 'nullable|file|mimes:json,txt|max:2048',
+            'project_id' => 'required|exists:projects,id',
         ]);
 
-        $path = $request->hasFile('attachment')
-            ? $request->file('attachment')->store('attachments')
-            : null;
+        $validated['user_id'] = auth()->id();
+        $validated['status'] = 'pending';
 
-        $ticket = Ticket::create([
-            'project_id' => $request->project_id,
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'attachment_path' => $path,
-            'status' => 'pending',
-        ]);
-
-        if ($path) {
-            ProcessTicketAttachment::dispatch($ticket);
-        }
+        Ticket::create($validated);
 
         return redirect()->route('tickets.index');
     }
 
-    public function show(Ticket $ticket)
+    public function edit(Ticket $ticket)
     {
-        return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket->load(['project.company', 'detail', 'user'])
+        return Inertia::render('Tickets/Edit', [
+            'ticket' => $ticket,
+            'projects' => Project::all(['id', 'name'])
         ]);
+    }
+
+    public function update(Request $request, Ticket $ticket)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'project_id' => 'required|exists:projects,id',
+            'status' => 'required|in:pending,processing,completed',
+        ]);
+
+        $ticket->update($validated);
+
+        return redirect()->route('tickets.index');
     }
 
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-
         return redirect()->route('tickets.index');
     }
 }
