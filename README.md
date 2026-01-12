@@ -112,7 +112,7 @@ docker compose exec laravel.test php artisan queue:work
 Aplicação:
 👉 
 ```sh
-http://localhost
+http://localhost:8080
 ```
 
 💡 Detalhes Técnicos Implementados
