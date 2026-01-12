@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessTicketAttachment;
 use App\Models\Ticket;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -28,12 +29,23 @@ class TicketController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'project_id' => 'required|exists:projects,id',
+            'attachment' => 'nullable|file|max:2048',
         ]);
 
-        $validated['user_id'] = auth()->id();
-        $validated['status'] = 'pending';
+        $path = null;
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('attachments');
+        }
 
-        Ticket::create($validated);
+        $ticket = Ticket::create([
+            'title' => $validated['title'],
+            'project_id' => $validated['project_id'],
+            'user_id' => auth()->id(),
+            'status' => 'pending',
+            'attachment_path' => $path,
+        ]);
+
+        ProcessTicketAttachment::dispatch($ticket);
 
         return redirect()->route('tickets.index');
     }

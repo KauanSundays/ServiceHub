@@ -9,10 +9,13 @@ defineProps<{
 const form = useForm({
     title: '',
     project_id: '',
+    attachment: null as File | null,
 });
 
 const submit = () => {
-    form.post('/tickets');
+    form.post('/tickets', {
+        forceFormData: true,
+    });
 };
 </script>
 
@@ -43,6 +46,19 @@ const submit = () => {
                                 </option>
                             </select>
                             <div v-if="form.errors.project_id" class="text-red-500 text-xs mt-1">{{ form.errors.project_id }}</div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="block font-medium text-sm text-gray-700">Anexo (Opcional)</label>
+                            <input
+                                type="file"
+                                @input="form.attachment = ($event.target as HTMLInputElement).files?.[0] || null"
+                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            />
+                            <div v-if="form.errors.attachment" class="text-red-500 text-xs mt-1">{{ form.errors.attachment }}</div>
+                            <progress v-if="form.progress" :value="form.progress.percentage" max="100" class="w-full h-2 mt-2">
+                                {{ form.progress.percentage }}%
+                            </progress>
                         </div>
 
                         <div class="mt-6">
