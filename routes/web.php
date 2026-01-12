@@ -19,6 +19,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('companies', CompanyController::class);
     Route::resource('projects', ProjectController::class);
     Route::resource('tickets', TicketController::class);
+    Route::post('/notifications/{id}/mark-as-read', function ($id) {
+        $notification = auth()->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return back();
+    })->name('notifications.markOne');
 });
 
 require __DIR__.'/settings.php';
