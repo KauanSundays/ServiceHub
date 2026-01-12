@@ -18,10 +18,10 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-Route::middleware(['auth'])->group(function () {
+// Route::middleware(['auth'])->group(function () {
     Route::resource('companies', CompanyController::class);
     Route::resource('projects', ProjectController::class);
     Route::resource('tickets', TicketController::class);
-});
+// });
 
 require __DIR__.'/settings.php';
