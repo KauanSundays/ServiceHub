@@ -19,7 +19,7 @@ class ProjectController extends Controller
     public function create()
     {
         return Inertia::render('Projects/Create', [
-            'companies' => Company::all()
+            'companies' => Company::all(['id', 'name'])
         ]);
     }
 
@@ -39,7 +39,7 @@ class ProjectController extends Controller
     {
         return Inertia::render('Projects/Edit', [
             'project' => $project,
-            'companies' => Company::all()
+            'companies' => Company::all(['id', 'name'])
         ]);
     }
 
