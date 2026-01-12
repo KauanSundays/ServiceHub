@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ProjectController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -18,6 +19,7 @@ Route::get('dashboard', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('companies', CompanyController::class);
+    Route::resource('projects', ProjectController::class);
 });
 
 require __DIR__.'/settings.php';
