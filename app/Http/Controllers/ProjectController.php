@@ -9,10 +9,21 @@ use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Inertia::render('Projects/Index', [
-            'projects' => Project::with('company')->latest()->get()
+            'projects' => Project::with('company')
+                ->when($request->search, function ($query, $search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                ->when($request->companies, function ($query, $companies) {
+                    $query->whereIn('company_id', $companies);
+                })
+                ->latest()
+                ->paginate(10)
+                ->withQueryString(),
+            'companies' => Company::all(['id', 'name']),
+            'filters' => $request->only(['search', 'companies'])
         ]);
     }
 
